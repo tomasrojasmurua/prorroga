@@ -86,7 +86,9 @@
     //  2) Versiones "trucadas" del propio José (se generan solas).
     // ===============================================
     const FOTOS_IMPOSTORES = [
-      // { archivo: "img/impostor1.png", pista: "Era Fulano" },
+      { archivo: "img/impostor1.png", pista: "José en 30 años más, quizás. Hoy no." },
+      { archivo: "img/impostor2.png", pista: "Mismo gorro, misma polera… otra cara." },
+      { archivo: "img/impostor3.png", pista: "José rockstar. Las chapas lo delataron." },
     ];
 
     const TRUCOS = [
@@ -125,10 +127,11 @@
     function crearMazo() {
       // Mitad aprox. José real, el resto impostores (fotos primero, luego trucos)
       const reales = Math.floor(RONDAS * (0.35 + Math.random() * 0.2));
-      const imp = barajar([
-        ...FOTOS_IMPOSTORES.map((f) => ({ tipo: "impostor", archivo: f.archivo, pista: f.pista })),
+      // Las fotos de impostores siempre aparecen; el resto se completa con trucos
+      const imp = [
+        ...barajar(FOTOS_IMPOSTORES.map((f) => ({ tipo: "impostor", archivo: f.archivo, estilo: "", pista: f.pista }))),
         ...barajar([...TRUCOS]).map((t) => ({ tipo: "impostor", archivo: "img/jose.png", estilo: t.estilo, pista: t.pista })),
-      ]).slice(0, RONDAS - reales);
+      ].slice(0, RONDAS - reales);
       const jose = Array.from({ length: reales }, () => ({ tipo: "jose", archivo: "img/jose.png", estilo: "", pista: "El auténtico. Inconfundible." }));
       return barajar([...jose, ...imp]);
     }
