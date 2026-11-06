@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reflexión del día · Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧘</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <script src="clave.js"></script>
+  <style>
+    .top { text-align: center; padding: 24px 16px 8px; }
+    .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
+    .top h1 { font-size: clamp(2.4rem, 10vw, 5rem); cursor: default; margin: 8px 0 4px; line-height: 0.95; }
+    .fecha { color: var(--acento); font-family: "Bebas Neue", sans-serif; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
+    .escenario { max-width: 520px; margin: 28px auto 0; padding: 0 16px; display: flex; flex-direction: column; align-items: center; }
+    .halo {
+      position: relative; display: grid; place-items: center; width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(250,204,21,0.22), transparent 68%);
+    }
+    .halo.sonando { animation: respirar 2.4s ease-in-out infinite; }
+    @keyframes respirar { 50% { box-shadow: 0 0 60px 10px rgba(250,204,21,0.25); transform: scale(1.03); } }
+    .tio { height: 240px; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5)); }
+    .halo.sonando .tio { animation: hablar 0.3s ease-in-out infinite alternate; }
+    @keyframes hablar { to { transform: rotate(-3deg) translateY(-4px); } }
+    .titulo-ref { font: 400 1.8rem "Bebas Neue", sans-serif; letter-spacing: 1px; margin: 16px 0 4px; }
+    .progreso { width: min(320px, 100%); height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
+    .progreso div { height: 100%; width: 0; background: var(--acento); transition: width 0.2s linear; }
+    .acciones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 20px 16px 8px; }
+    .acciones button {
+      font: 400 1.4rem "Bebas Neue", sans-serif; letter-spacing: 1px; border: 0; border-radius: 999px;
+      padding: 12px 26px; cursor: pointer; color: #111; background: var(--acento); box-shadow: 0 4px 0 #a16207;
+    }
+    .acciones button.sec { background: rgba(255,255,255,0.12); color: var(--texto); box-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
+    .acciones button:active { transform: translateY(3px); box-shadow: none; }
+    .aviso { text-align: center; color: var(--suave); min-height: 1.4em; margin: 0; padding: 0 16px; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="volver" href="./">← Volver a la Prórroga</a>
+    <h1>REFLEXIÓN DEL DÍA JUNTO A NICOLÁS</h1>
+    <p class="fecha" id="fecha"></p>
+  </div>
+
+  <div class="escenario">
+    <div class="halo" id="halo"><img class="tio" src="img/cara.png" alt="Nicolás"></div>
+    <p class="titulo-ref" id="titulo-ref"></p>
+    <div class="progreso"><div id="barra"></div></div>
+  </div>
+
+  <div class="acciones">
+    <button id="play">▶ Escuchar la reflexión</button>
+    <button id="otra" class="sec">🎲 Otra reflexión</button>
+  </div>
+  <p class="aviso" id="aviso"></p>
+
+  <script src="reflexiones.js"></script>
+  <script>
+    const halo = document.getElementById("halo");
+    const btnPlay = document.getElementById("play");
+    const barra = document.getElementById("barra");
+    const aviso = document.getElementById("aviso");
+    const audio = new Audio();
+
+    // La reflexión del día depende de la fecha: todos escuchan la misma ese día
+    const hoy = new Date();
+    const diaNumero = Math.floor(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime() / 86400000);
+    let indice = diaNumero % REFLEXIONES.length;
+    document.getElementById("fecha").textContent =
+      hoy.toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" });
+
+    function cargar(i) {
+      indice = i;
+      audio.pause();
+      audio.src = REFLEXIONES[i].archivo;
+      document.getElementById("titulo-ref").textContent = REFLEXIONES[i].titulo;
+      barra.style.width = "0";
+      btnPlay.textContent = "▶ Escuchar la reflexión";
+    }
+
+    btnPlay.addEventListener("click", () => {
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    });
+    audio.addEventListener("play", () => { halo.classList.add("sonando"); btnPlay.textContent = "⏸ Pausar"; });
+    audio.addEventListener("pause", () => { halo.classList.remove("sonando"); btnPlay.textContent = "▶ Seguir escuchando"; });
+    audio.addEventListener("ended", () => { btnPlay.textContent = "↻ Escuchar de nuevo"; barra.style.width = "100%"; });
+    audio.addEventListener("timeupdate", () => {
+      if (audio.duration) barra.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+    });
+
+    const btnOtra = document.getElementById("otra");
+    if (REFLEXIONES.length < 2) btnOtra.hidden = true;
+    btnOtra.addEventListener("click", () => {
+      let n;
+      do { n = Math.floor(Math.random() * REFLEXIONES.length); } while (n === indice);
+      cargar(n);
+      audio.play().catch(() => {});
+      aviso.textContent = "Esta no es la del día, pero igual ilumina.";
+    });
+
+    cargar(indice);
+  </script>
+</body>
+</html>
