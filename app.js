@@ -87,4 +87,4 @@ document.getElementById("titulo").addEventListener("click", () =>
 
 pintarChistes();
 relojPrórroga();
-sonarAlAbrir();
+window.prorrogaDesbloqueada.then(sonarAlAbrir);
