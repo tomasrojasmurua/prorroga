@@ -6,9 +6,9 @@
   <title>Reflexión del día · Prórroga</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧘</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="estilos.css?v=30">
-  <script src="clave.js?v=30"></script>
-  <script src="nooo.js?v=30"></script>
+  <link rel="stylesheet" href="estilos.css?v=31">
+  <script src="clave.js?v=31"></script>
+  <script src="nooo.js?v=31"></script>
   <style>
     .top { text-align: center; padding: 24px 16px 8px; }
     .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
@@ -24,6 +24,13 @@
     .tio { height: 240px; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5)); }
     .halo.sonando .tio { animation: hablar 0.3s ease-in-out infinite alternate; }
     @keyframes hablar { to { transform: rotate(-3deg) translateY(-4px); } }
+    .cuadro {
+      width: min(420px, 100%); border-radius: 14px; overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.55); border: 3px solid rgba(255,255,255,0.15);
+    }
+    .cuadro img { display: block; width: 100%; height: auto; transition: transform 14s ease-out; }
+    .cuadro.sonando img { transform: scale(1.12); }
+    .oculto { display: none !important; }
     .titulo-ref { font: 400 1.8rem "Bebas Neue", sans-serif; letter-spacing: 1px; margin: 16px 0 4px; }
     .progreso { width: min(320px, 100%); height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
     .progreso div { height: 100%; width: 0; background: var(--acento); transition: width 0.2s linear; }
@@ -46,6 +53,7 @@
 
   <div class="escenario">
     <div class="halo" id="halo"><img class="tio" src="img/cara.png" alt="Nicolás"></div>
+    <div class="cuadro oculto" id="cuadro"><img id="imagen-ref" alt=""></div>
     <p class="titulo-ref" id="titulo-ref"></p>
     <div class="progreso"><div id="barra"></div></div>
   </div>
@@ -56,7 +64,7 @@
   </div>
   <p class="aviso" id="aviso"></p>
 
-  <script src="reflexiones.js?v=30"></script>
+  <script src="reflexiones.js?v=31"></script>
   <script>
     const halo = document.getElementById("halo");
     const btnPlay = document.getElementById("play");
@@ -76,6 +84,11 @@
       audio.pause();
       audio.src = REFLEXIONES[i].archivo;
       document.getElementById("titulo-ref").textContent = REFLEXIONES[i].titulo;
+      // Si la reflexión trae imagen, se muestra en vez de la cara de Nicolás
+      const img = REFLEXIONES[i].imagen;
+      document.getElementById("cuadro").classList.toggle("oculto", !img);
+      halo.classList.toggle("oculto", !!img);
+      if (img) { document.getElementById("imagen-ref").src = img; document.getElementById("imagen-ref").alt = REFLEXIONES[i].titulo; }
       barra.style.width = "0";
       btnPlay.textContent = "▶ Escuchar la reflexión";
     }
@@ -84,8 +97,9 @@
       if (audio.paused) audio.play().catch(() => {});
       else audio.pause();
     });
-    audio.addEventListener("play", () => { halo.classList.add("sonando"); btnPlay.textContent = "⏸ Pausar"; });
-    audio.addEventListener("pause", () => { halo.classList.remove("sonando"); btnPlay.textContent = "▶ Seguir escuchando"; });
+    const cuadro = document.getElementById("cuadro");
+    audio.addEventListener("play", () => { cuadro.classList.add("sonando"); halo.classList.add("sonando"); btnPlay.textContent = "⏸ Pausar"; });
+    audio.addEventListener("pause", () => { cuadro.classList.remove("sonando"); halo.classList.remove("sonando"); btnPlay.textContent = "▶ Seguir escuchando"; });
     audio.addEventListener("ended", () => { btnPlay.textContent = "↻ Escuchar de nuevo"; barra.style.width = "100%"; });
     audio.addEventListener("timeupdate", () => {
       if (audio.duration) barra.style.width = (audio.currentTime / audio.duration) * 100 + "%";
