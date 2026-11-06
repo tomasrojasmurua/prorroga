@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏱️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <!-- Pantalla de entrada: aparece solo si el navegador bloquea el audio automático -->
+  <div id="entrada" class="entrada oculto" role="dialog" aria-label="Entrar">
+    <button id="btn-entrar" class="btn-entrar">
+      <span class="icono">▶</span>
+      <span>Entrar a la Prórroga</span>
+    </button>
+    <p class="nota">Activa el sonido 🔊</p>
+  </div>
+
+  <header class="marcador">
+    <div class="reloj" id="reloj">90<span class="mas">+</span><span id="minutos-extra">1</span>'</div>
+    <h1 id="titulo" title="Toca para escuchar">PRÓRROGA</h1>
+    <p class="bajada">Los chistes internos del equipo</p>
+    <div class="botones-audio">
+      <button class="btn-audio" data-audio="audio1">🔊 Frase 1</button>
+      <button class="btn-audio" data-audio="audio2">🔊 Frase 2</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="chistes" class="chistes" aria-live="polite"></section>
+  </main>
+
+  <footer>Hecho con cariño (y mucho tiempo añadido) ⏱️</footer>
+
+  <audio id="audio1" src="audio/parte1.mp3" preload="auto"></audio>
+  <audio id="audio2" src="audio/parte2.mp3" preload="auto"></audio>
+
+  <script src="chistes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
