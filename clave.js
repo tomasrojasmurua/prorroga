@@ -8,7 +8,7 @@
 //  puede saltársela, porque GitHub Pages no tiene contraseñas reales.
 // ===============================================
 // Versión del sitio: se muestra en la esquina superior derecha de todas las páginas
-const VERSION_SITIO = "v1.29 · 6 nov 2026";
+const VERSION_SITIO = "v1.30 · 6 nov 2026";
 
 (function () {
   function mostrarVersion() {
