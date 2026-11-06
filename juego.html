@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pégale a Nicolás · Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔨</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .juego-top { text-align: center; padding: 24px 16px 8px; }
+    .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
+    .volver:hover { color: var(--texto); }
+    .juego-top h1 { font-size: clamp(3rem, 12vw, 6rem); cursor: default; margin: 8px 0; }
+    .tablero-info {
+      display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+      font-family: "Bebas Neue", sans-serif; font-size: 1.5rem; letter-spacing: 1px;
+    }
+    .tablero-info span { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 8px; }
+    .tablero-info b { color: var(--acento); font-weight: 400; }
+    .hoyos {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+      max-width: 480px; margin: 20px auto; padding: 0 16px;
+      cursor: crosshair; touch-action: manipulation;
+    }
+    .hoyo {
+      position: relative; aspect-ratio: 1; overflow: hidden;
+      border-radius: 50% 50% 46% 46%;
+      background: radial-gradient(ellipse at 50% 80%, #050a07 40%, #1d3a26 70%, #2b5a3a);
+      box-shadow: inset 0 -8px 0 rgba(0,0,0,0.35);
+    }
+    .hoyo img {
+      position: absolute; left: 50%; bottom: -100%;
+      height: 92%; transform: translateX(-50%);
+      transition: bottom 0.15s ease-out;
+      pointer-events: none; user-select: none;
+    }
+    .hoyo.arriba img { bottom: 0; }
+    .hoyo.espejo img { transform: translateX(-50%) scaleX(-1); }
+    .hoyo.golpe img { filter: brightness(1.6) saturate(0.4); }
+    .hoyo .pum {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      font: 400 clamp(1rem, 5vw, 1.6rem) "Bebas Neue", sans-serif; color: var(--acento);
+      text-shadow: 0 2px 0 #000; opacity: 0; pointer-events: none;
+    }
+    .hoyo.golpe .pum { animation: pum 0.5s ease-out; }
+    @keyframes pum { 0% { opacity: 1; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.4) translateY(-20px); } }
+    .controles { text-align: center; padding: 0 16px 24px; }
+    .mensaje { color: var(--suave); min-height: 1.5em; margin: 0 0 12px; }
+  </style>
+</head>
+<body>
+  <div class="juego-top">
+    <a class="volver" href="./">← Volver a la Prórroga</a>
+    <h1>PÉGALE A NICOLÁS</h1>
+    <div class="tablero-info">
+      <span>Puntos <b id="puntos">0</b></span>
+      <span>Tiempo <b id="tiempo">30</b></span>
+      <span>Récord <b id="record">0</b></span>
+    </div>
+  </div>
+
+  <div class="hoyos" id="hoyos"></div>
+
+  <div class="controles">
+    <p class="mensaje" id="mensaje">Toca a Nicolás cada vez que asome la cabeza.</p>
+    <button class="btn-entrar" id="btn-jugar" style="margin: 0 auto">▶ Jugar</button>
+  </div>
+
+  <script src="botonera.js"></script>
+  <script>
+    const DURACION = 30;
+    const hoyosEl = document.getElementById("hoyos");
+    const puntosEl = document.getElementById("puntos");
+    const tiempoEl = document.getElementById("tiempo");
+    const recordEl = document.getElementById("record");
+    const mensajeEl = document.getElementById("mensaje");
+    const btn = document.getElementById("btn-jugar");
+
+    // Audios de la botonera que suenan al pegarle
+    const sonidos = BOTONERA.map((b) => b.archivo);
+    let sonando = null;
+    function sonar() {
+      if (sonando) sonando.pause();
+      sonando = new Audio(sonidos[Math.floor(Math.random() * sonidos.length)]);
+      sonando.play().catch(() => {});
+      setTimeout(() => sonando && sonando.pause(), 2500); // corta los audios largos
+    }
+
+    let record = 0;
+    try { record = Number(localStorage.getItem("prorroga-record")) || 0; } catch (e) {}
+    recordEl.textContent = record;
+
+    const hoyos = [];
+    for (let i = 0; i < 9; i++) {
+      const h = document.createElement("div");
+      h.className = "hoyo";
+      h.innerHTML = '<img src="img/cara.png" alt=""><span class="pum">¡PRÓRROGA!</span>';
+      h.addEventListener("pointerdown", () => golpear(h));
+      hoyosEl.append(h);
+      hoyos.push(h);
+    }
+
+    let puntos = 0, restante = 0, jugando = false, reloj, temporizador;
+
+    function golpear(h) {
+      if (!jugando || !h.classList.contains("arriba") || h.classList.contains("golpe")) return;
+      puntos++;
+      puntosEl.textContent = puntos;
+      h.classList.add("golpe");
+      sonar();
+      setTimeout(() => h.classList.remove("arriba", "golpe"), 350);
+    }
+
+    function asomar() {
+      if (!jugando) return;
+      const libres = hoyos.filter((h) => !h.classList.contains("arriba"));
+      const h = libres[Math.floor(Math.random() * libres.length)];
+      // Se pone más rápido a medida que corre el tiempo
+      const visible = 600 + 700 * (restante / DURACION);
+      h.classList.toggle("espejo", Math.random() < 0.5);
+      h.classList.add("arriba");
+      setTimeout(() => { if (!h.classList.contains("golpe")) h.classList.remove("arriba"); }, visible);
+      temporizador = setTimeout(asomar, visible * (0.5 + Math.random() * 0.5));
+    }
+
+    function jugar() {
+      puntos = 0; restante = DURACION; jugando = true;
+      puntosEl.textContent = 0; tiempoEl.textContent = restante;
+      mensajeEl.textContent = "¡Dale!";
+      btn.style.visibility = "hidden";
+      asomar();
+      reloj = setInterval(() => {
+        tiempoEl.textContent = --restante;
+        if (restante <= 0) terminar();
+      }, 1000);
+    }
+
+    function terminar() {
+      jugando = false;
+      clearInterval(reloj); clearTimeout(temporizador);
+      hoyos.forEach((h) => h.classList.remove("arriba"));
+      let txt = `Le pegaste ${puntos} ${puntos === 1 ? "vez" : "veces"}.`;
+      if (puntos > record) {
+        record = puntos; recordEl.textContent = record;
+        try { localStorage.setItem("prorroga-record", record); } catch (e) {}
+        txt += " ¡Nuevo récord!";
+      }
+      mensajeEl.textContent = txt;
+      btn.textContent = "↻ Otra vez";
+      btn.style.visibility = "visible";
+    }
+
+    btn.addEventListener("click", jugar);
+  </script>
+</body>
+</html>

@@ -180,3 +180,17 @@ footer { text-align: center; color: var(--suave); padding: 40px 16px; font-size:
   .cara-der { transform: scaleX(-1); }
   .chiste { animation: none; opacity: 1; }
 }
+
+.btn-juego {
+  display: inline-block;
+  margin-top: 8px;
+  font: 400 1.4rem "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  color: #111;
+  background: var(--acento);
+  padding: 8px 20px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 4px 0 #a16207;
+}
+.btn-juego:active { transform: translateY(3px); box-shadow: 0 1px 0 #a16207; }
