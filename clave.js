@@ -7,8 +7,8 @@
 //  Ojo: es una protección liviana. Alguien con conocimientos técnicos
 //  puede saltársela, porque GitHub Pages no tiene contraseñas reales.
 // ===============================================
-// Versión del sitio: se muestra en la esquina inferior derecha de todas las páginas
-const VERSION_SITIO = "v1.18 · 6 nov 2026";
+// Versión del sitio: se muestra en la esquina superior derecha de todas las páginas
+const VERSION_SITIO = "v1.19 · 6 nov 2026";
 
 (function () {
   function mostrarVersion() {
@@ -16,8 +16,9 @@ const VERSION_SITIO = "v1.18 · 6 nov 2026";
     const v = document.createElement("div");
     v.id = "version";
     v.textContent = VERSION_SITIO;
-    v.style.cssText = "position:fixed;right:8px;bottom:8px;z-index:200;font:600 11px Inter,system-ui,sans-serif;" +
-      "color:rgba(241,245,242,0.75);background:rgba(0,0,0,0.45);padding:3px 8px;border-radius:999px;pointer-events:none;";
+    v.style.cssText = "position:fixed;top:calc(8px + env(safe-area-inset-top));right:8px;z-index:2147483647;" +
+      "font:700 12px Inter,system-ui,sans-serif;color:#111;background:#facc15;padding:4px 10px;" +
+      "border-radius:999px;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,0.4);";
     document.body.append(v);
   }
   if (document.body) mostrarVersion();
