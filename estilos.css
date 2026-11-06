@@ -196,3 +196,22 @@ footer { text-align: center; color: var(--suave); padding: 40px 16px; font-size:
 .btn-juego:active { transform: translateY(3px); box-shadow: 0 1px 0 #a16207; }
 
 .juegos { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* Tarjeta de Navidad */
+.navidad { margin: 32px 0 8px; display: flex; justify-content: center; }
+.tarjeta-navidad {
+  margin: 0; max-width: 560px; width: 100%;
+  background: #fffdf7; color: #1f2937;
+  padding: 12px 12px 18px; border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+  transform: rotate(-1.5deg);
+  border-top: 6px solid #b91c1c;
+}
+.tarjeta-navidad img { width: 100%; height: auto; display: block; border-radius: 4px; }
+.tarjeta-navidad figcaption { text-align: center; padding-top: 12px; position: relative; }
+.tarjeta-navidad .adorno { position: absolute; top: -34px; right: 6px; font-size: 2.4rem; transform: rotate(10deg); }
+.tarjeta-navidad .saludo {
+  font-family: "Bebas Neue", sans-serif; font-size: clamp(1.5rem, 5.5vw, 2.1rem);
+  letter-spacing: 1px; line-height: 1.1; margin: 0; color: #b91c1c;
+}
+.tarjeta-navidad .firma { margin: 6px 0 0; font-style: italic; color: #166534; font-weight: 600; }
