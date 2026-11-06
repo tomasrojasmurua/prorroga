@@ -51,6 +51,28 @@ h1 {
 }
 h1:active { transform: scale(0.97); }
 
+.titular {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2vw, 24px);
+}
+.titular h1 { margin: 16px 0 8px; }
+
+/* La imagen se alterna con su versión espejada para dar sensación de movimiento */
+.cara {
+  height: clamp(70px, 18vw, 170px);
+  width: auto;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+  animation: espejo 0.8s steps(1) infinite;
+}
+.cara-der { animation-delay: 0.4s; }
+
+@keyframes espejo {
+  0%   { transform: scaleX(1); }
+  50%  { transform: scaleX(-1); }
+}
+
 .bajada { color: var(--suave); margin: 0 0 20px; }
 
 .botones-audio { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
@@ -123,5 +145,7 @@ footer { text-align: center; color: var(--suave); padding: 40px 16px; font-size:
 
 @media (prefers-reduced-motion: reduce) {
   .reloj, .btn-entrar { animation: none; }
+  .cara { animation: none; }
+  .cara-der { transform: scaleX(-1); }
   .chiste { animation: none; opacity: 1; }
 }
