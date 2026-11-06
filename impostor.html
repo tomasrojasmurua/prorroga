@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>¿José o impostor? · Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .top { text-align: center; padding: 24px 16px 8px; }
+    .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
+    .top h1 { font-size: clamp(2.6rem, 11vw, 5.5rem); cursor: default; margin: 8px 0; }
+    .info {
+      display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+      font-family: "Bebas Neue", sans-serif; font-size: 1.4rem; letter-spacing: 1px;
+    }
+    .info span { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 8px; }
+    .info b { color: var(--acento); font-weight: 400; }
+    .escena {
+      position: relative; max-width: 340px; height: 340px; margin: 20px auto 8px;
+      display: grid; place-items: center;
+      background: radial-gradient(circle, rgba(250,204,21,0.15), transparent 65%);
+    }
+    .escena img {
+      max-height: 300px; max-width: 90%;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5));
+      transition: opacity 0.2s;
+    }
+    .sello {
+      position: absolute; top: 40%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-12deg) scale(0.6);
+      font: 400 2.6rem "Bebas Neue", sans-serif; letter-spacing: 2px;
+      padding: 4px 16px; border: 4px solid; border-radius: 8px;
+      background: rgba(0,0,0,0.65); opacity: 0; pointer-events: none;
+      transition: opacity 0.15s, transform 0.2s;
+    }
+    .sello.si { color: #4ade80; }
+    .sello.no { color: #f87171; }
+    .sello.ver { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+    .pista { text-align: center; color: var(--suave); min-height: 1.5em; margin: 0 16px 12px; }
+    .opciones { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 0 16px; }
+    .opcion {
+      font: 400 1.6rem "Bebas Neue", sans-serif; letter-spacing: 1px;
+      border: 0; border-radius: 999px; padding: 12px 26px; cursor: pointer; color: #111;
+    }
+    .opcion.jose { background: #4ade80; box-shadow: 0 5px 0 #15803d; }
+    .opcion.impostor { background: #f87171; box-shadow: 0 5px 0 #b91c1c; }
+    .opcion:active { transform: translateY(4px); box-shadow: none; }
+    .opcion:disabled { opacity: 0.5; cursor: default; }
+    .final { text-align: center; padding: 16px; }
+    .oculto { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="volver" href="./">← Volver a la Prórroga</a>
+    <h1>¿JOSÉ O IMPOSTOR?</h1>
+    <div class="info">
+      <span>Ronda <b id="ronda">1</b>/<b id="total">10</b></span>
+      <span>Aciertos <b id="aciertos">0</b></span>
+    </div>
+  </div>
+
+  <div class="escena">
+    <img id="foto" src="img/jose.png" alt="¿Es José Marambio?">
+    <div id="sello" class="sello"></div>
+  </div>
+  <p class="pista" id="pista">Mira bien. ¿Es el verdadero José Marambio?</p>
+
+  <div class="opciones" id="opciones">
+    <button class="opcion jose" data-resp="jose">✅ Es José</button>
+    <button class="opcion impostor" data-resp="impostor">🕵️ Impostor</button>
+  </div>
+
+  <div class="final oculto" id="final">
+    <p class="pista" id="resultado"></p>
+    <button class="btn-entrar" id="otra" style="margin: 0 auto">↻ Jugar otra vez</button>
+  </div>
+
+  <script>
+    // ===============================================
+    //  IMPOSTORES
+    //  1) Fotos de otras personas: súbelas a img/ y agrégalas aquí.
+    //  2) Versiones "trucadas" del propio José (se generan solas).
+    // ===============================================
+    const FOTOS_IMPOSTORES = [
+      // { archivo: "img/impostor1.png", pista: "Era Fulano" },
+    ];
+
+    const TRUCOS = [
+      { estilo: "filter: hue-rotate(120deg)", pista: "Gorro verde. José jamás." },
+      { estilo: "filter: hue-rotate(220deg)", pista: "Gorro azul. Sospechoso." },
+      { estilo: "transform: scaleX(-1)", pista: "Estaba al revés. Impostor espejado." },
+      { estilo: "transform: scaleX(1.35)", pista: "Demasiado ancho para ser José." },
+      { estilo: "transform: scaleY(1.2) scaleX(0.8)", pista: "Ese José está estirado." },
+      { estilo: "filter: grayscale(1)", pista: "José en blanco y negro no existe." },
+      { estilo: "transform: rotate(9deg)", pista: "Torcido. Impostor." },
+      { estilo: "filter: saturate(3) contrast(1.2)", pista: "Demasiado saturado." },
+      { estilo: "filter: sepia(1)", pista: "José del año 1920. No." },
+      { estilo: "filter: blur(2px)", pista: "Borroso. No se deja ver, sospechoso." },
+      { estilo: "transform: scale(0.65)", pista: "Mini José. Impostor." },
+    ];
+
+    const RONDAS = 10;
+    const foto = document.getElementById("foto");
+    const sello = document.getElementById("sello");
+    const pista = document.getElementById("pista");
+    const opciones = document.getElementById("opciones");
+    const final = document.getElementById("final");
+    const botones = opciones.querySelectorAll(".opcion");
+    document.getElementById("total").textContent = RONDAS;
+
+    let ronda, aciertos, actual, mazo;
+
+    function barajar(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function crearMazo() {
+      // Mitad aprox. José real, el resto impostores (fotos primero, luego trucos)
+      const reales = Math.floor(RONDAS * (0.35 + Math.random() * 0.2));
+      const imp = barajar([
+        ...FOTOS_IMPOSTORES.map((f) => ({ tipo: "impostor", archivo: f.archivo, pista: f.pista })),
+        ...barajar([...TRUCOS]).map((t) => ({ tipo: "impostor", archivo: "img/jose.png", estilo: t.estilo, pista: t.pista })),
+      ]).slice(0, RONDAS - reales);
+      const jose = Array.from({ length: reales }, () => ({ tipo: "jose", archivo: "img/jose.png", estilo: "", pista: "El auténtico. Inconfundible." }));
+      return barajar([...jose, ...imp]);
+    }
+
+    function mostrar() {
+      actual = mazo[ronda];
+      sello.className = "sello";
+      foto.style.opacity = 0;
+      setTimeout(() => {
+        foto.src = actual.archivo;
+        foto.style.cssText = actual.estilo || "";
+        foto.style.opacity = 1;
+      }, 150);
+      document.getElementById("ronda").textContent = ronda + 1;
+      pista.textContent = "Mira bien. ¿Es el verdadero José Marambio?";
+      botones.forEach((b) => (b.disabled = false));
+    }
+
+    function responder(resp) {
+      botones.forEach((b) => (b.disabled = true));
+      const bien = resp === actual.tipo;
+      if (bien) aciertos++;
+      document.getElementById("aciertos").textContent = aciertos;
+      sello.textContent = actual.tipo === "jose" ? "ERA JOSÉ" : "IMPOSTOR";
+      sello.className = "sello ver " + (bien ? "si" : "no");
+      pista.textContent = (bien ? "¡Bien! " : "¡Te engañaron! ") + actual.pista;
+      setTimeout(() => {
+        ronda++;
+        if (ronda < RONDAS) mostrar();
+        else terminar();
+      }, 1600);
+    }
+
+    function terminar() {
+      opciones.classList.add("oculto");
+      final.classList.remove("oculto");
+      let txt = `Acertaste ${aciertos} de ${RONDAS}. `;
+      if (aciertos === RONDAS) txt += "Conoces a José mejor que su mamá.";
+      else if (aciertos >= 7) txt += "Buen ojo, casi nadie te engaña.";
+      else if (aciertos >= 4) txt += "Te pasaron unos cuantos impostores.";
+      else txt += "Tú no reconocerías a José ni en la oficina.";
+      document.getElementById("resultado").textContent = txt;
+      pista.textContent = "";
+    }
+
+    function empezar() {
+      ronda = 0; aciertos = 0; mazo = crearMazo();
+      document.getElementById("aciertos").textContent = 0;
+      opciones.classList.remove("oculto");
+      final.classList.add("oculto");
+      mostrar();
+    }
+
+    botones.forEach((b) => b.addEventListener("click", () => responder(b.dataset.resp)));
+    document.getElementById("otra").addEventListener("click", empezar);
+    empezar();
+  </script>
+</body>
+</html>
