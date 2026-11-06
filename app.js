@@ -1,5 +1,5 @@
 // Frase que suena al abrir la página: "audio1" o "audio2"
-const AUDIO_AL_ABRIR = "audio1";
+const AUDIO_AL_ABRIR = "audio2";
 
 function reproducir(id) {
   const a = document.getElementById(id);
