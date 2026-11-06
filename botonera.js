@@ -23,5 +23,6 @@ const BOTONERA = [
   { nombre: "Fuimos a buscar a los niños", archivo: "audio/fuimosabuscaralosninos.mp3", emoji: "🧒" },
   { nombre: "¿Qué comprobante de qué?", archivo: "audio/quecomprobantedeque.mp3", emoji: "🧾" },
   { nombre: "Pucha que lata", archivo: "audio/puchaquelata.mp3", emoji: "😩" },
+  { nombre: "Tengo a la Sonora Malecón", archivo: "audio/tengoalasonoramalecon.mp3", emoji: "🎺" },
   { nombre: "Cucurella", archivo: "audio/cucurelia.mp3", emoji: "⚽" },
 ];
