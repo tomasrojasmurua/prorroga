@@ -68,7 +68,7 @@
     // El consejo del día depende de la fecha: todos ven el mismo ese día
     const hoy = new Date();
     const diaNumero = Math.floor(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime() / 86400000);
-    let indice = diaNumero % CONSEJOS.length;
+    let indice = CONSEJOS.length ? diaNumero % CONSEJOS.length : 0;
     document.getElementById("fecha").textContent =
       hoy.toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" });
 
@@ -102,7 +102,14 @@
       catch (e) { aviso.textContent = txt; }
     });
 
-    mostrar(indice, false);
+    if (CONSEJOS.length === 0) {
+      // Todavía no hay consejos cargados
+      globo.textContent = "Próximamente… el tío está preparando sus consejos.";
+      document.getElementById("otro").hidden = true;
+      document.getElementById("copiar").hidden = true;
+    } else {
+      mostrar(indice, false);
+    }
   </script>
 </body>
 </html>
