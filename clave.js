@@ -1,5 +1,6 @@
 // ===============================================
 //  CLAVE DE ACCESO
+//  Se pide cada vez que se abre el sitio en una pestaña nueva.
 //  Se guarda solo el "hash" SHA-256 de la clave, no la clave en texto.
 //  Para cambiarla, calcula el hash de la nueva clave (por ejemplo en
 //  https://emn178.github.io/online-tools/sha256.html) y pégalo aquí.
@@ -13,8 +14,9 @@
   let resolver;
   window.prorrogaDesbloqueada = new Promise((r) => (resolver = r));
 
+  try { localStorage.removeItem(LLAVE); } catch (e) {} // limpia el acceso antiguo
   let guardado = null;
-  try { guardado = localStorage.getItem(LLAVE); } catch (e) {}
+  try { guardado = sessionStorage.getItem(LLAVE); } catch (e) {}
   if (guardado === HASH_CLAVE) {
     resolver(false); // false = no hubo interacción del usuario
     return;
@@ -65,7 +67,7 @@
       const buf = await crypto.subtle.digest("SHA-256", datos);
       const hash = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
       if (hash === HASH_CLAVE) {
-        try { localStorage.setItem(LLAVE, hash); } catch (e) {}
+        try { sessionStorage.setItem(LLAVE, hash); } catch (e) {}
         c.remove();
         estilo.remove();
         resolver(true); // true = el usuario hizo clic, se puede reproducir audio

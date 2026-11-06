@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Viste a la Koyonka · Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👕</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <script src="clave.js"></script>
+  <style>
+    .top { text-align: center; padding: 24px 16px 8px; }
+    .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
+    .top h1 { font-size: clamp(2.6rem, 11vw, 5rem); cursor: default; margin: 8px 0 0; }
+    .estudio {
+      display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 24px;
+      max-width: 960px; margin: 16px auto; padding: 0 16px; align-items: start;
+    }
+    @media (max-width: 760px) { .estudio { grid-template-columns: 1fr; } }
+    canvas {
+      width: 100%; max-width: 380px; height: auto; display: block; margin: 0 auto;
+      border-radius: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+    }
+    .categoria { margin-bottom: 14px; }
+    .categoria h3 {
+      font: 400 1.3rem "Bebas Neue", sans-serif; letter-spacing: 1px; margin: 0 0 6px; color: var(--acento);
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font: 600 0.88rem "Inter", sans-serif; color: var(--texto);
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    }
+    .chip:hover { background: rgba(255,255,255,0.16); }
+    .chip[aria-pressed="true"] { background: var(--acento); color: #111; border-color: var(--acento); }
+    .acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .acciones button {
+      font: 400 1.3rem "Bebas Neue", sans-serif; letter-spacing: 1px; border: 0; border-radius: 999px;
+      padding: 10px 20px; cursor: pointer; color: #111; background: var(--acento); box-shadow: 0 4px 0 #a16207;
+    }
+    .acciones button.sec { background: rgba(255,255,255,0.12); color: var(--texto); box-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
+    .acciones button:active { transform: translateY(3px); box-shadow: none; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="volver" href="./">← Volver a la Prórroga</a>
+    <h1>VISTE A LA KOYONKA</h1>
+  </div>
+
+  <div class="estudio">
+    <canvas id="lienzo" width="760" height="1320" aria-label="La Koyonka vestida"></canvas>
+    <div>
+      <div id="controles"></div>
+      <div class="acciones">
+        <button id="descargar">⬇ Descargar imagen</button>
+        <button id="azar" class="sec">🎲 Al azar</button>
+        <button id="desvestir" class="sec">🩲 Desvestir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===============================================
+    //  Cara de Sebastián: sube la foto como img/sebastian.png
+    //  (idealmente solo la cara, con fondo transparente).
+    //  Mientras no exista, se dibuja una cara de dibujo animado.
+    // ===============================================
+    const FOTO_CARA = "img/sebastian.png";
+
+    const lienzo = document.getElementById("lienzo");
+    const ctx = lienzo.getContext("2d");
+    ctx.scale(2, 2); // se dibuja en 380x600 y se exporta al doble de resolución
+    const W = 380, H = 660;
+    const BAJAR = 30; // espacio arriba para los sombreros
+    const PIEL = "#e9b48c", PIEL_OSC = "#c98f66";
+
+    const cara = new Image();
+    let caraLista = false;
+    cara.onload = () => { caraLista = true; dibujar(); };
+    cara.src = FOTO_CARA;
+
+    // ---------- utilidades ----------
+    function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+    function linea(x1, y1, x2, y2, ancho, color) {
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      ctx.lineWidth = ancho; ctx.lineCap = "round"; ctx.strokeStyle = color; ctx.stroke();
+    }
+    function poli(puntos, relleno, borde) {
+      ctx.beginPath(); ctx.moveTo(...puntos[0]);
+      puntos.slice(1).forEach((p) => ctx.lineTo(...p));
+      ctx.closePath();
+      if (relleno) { ctx.fillStyle = relleno; ctx.fill(); }
+      if (borde) { ctx.strokeStyle = borde; ctx.lineWidth = 2; ctx.stroke(); }
+    }
+    function elipse(x, y, rx, ry, color) {
+      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+    }
+    function rayas(forma, c1, c2, alto) {
+      ctx.save(); forma(); ctx.clip();
+      for (let y = 0; y < H; y += alto * 2) {
+        ctx.fillStyle = c1; ctx.fillRect(0, y, W, alto);
+        ctx.fillStyle = c2; ctx.fillRect(0, y + alto, W, alto);
+      }
+      ctx.restore();
+    }
+
+    // Puntos del cuerpo
+    const HOMBRO_I = [132, 210], HOMBRO_D = [248, 210];
+    const MANO_I = [98, 372], MANO_D = [282, 372];
+    const enBrazo = (h, m, t) => [h[0] + (m[0] - h[0]) * t, h[1] + (m[1] - h[1]) * t];
+    const TORSO = [[128, 200], [252, 200], [262, 350], [118, 350]];
+
+    // ---------- cuerpo base ----------
+    function fondo() {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, "#1f5f37"); g.addColorStop(1, "#0d1b12");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      for (let x = 0; x < W; x += 76) ctx.fillRect(x, 0, 38, H);
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.beginPath(); ctx.ellipse(W / 2, 582 + BAJAR, 120, 14, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function cuerpo() {
+      // piernas
+      linea(165, 390, 160, 560, 44, PIEL);
+      linea(215, 390, 220, 560, 44, PIEL);
+      // pies
+      elipse(150, 572, 30, 13, PIEL_OSC);
+      elipse(230, 572, 30, 13, PIEL_OSC);
+      // brazos
+      linea(...HOMBRO_I, ...MANO_I, 32, PIEL);
+      linea(...HOMBRO_D, ...MANO_D, 32, PIEL);
+      // cuello y torso
+      ctx.fillStyle = PIEL; ctx.fillRect(172, 168, 36, 40);
+      poli(TORSO, PIEL);
+      elipse(190, 340, 72, 30, PIEL); // guatita
+      // detalles: pezones y ombligo
+      elipse(160, 255, 4, 4, PIEL_OSC); elipse(220, 255, 4, 4, PIEL_OSC);
+      elipse(190, 320, 3, 5, PIEL_OSC);
+      manos();
+    }
+    function manos() {
+      elipse(...MANO_I, 18, 18, PIEL); elipse(...MANO_D, 18, 18, PIEL);
+    }
+
+    function calzoncillos() {
+      const forma = [[118, 345], [262, 345], [266, 405], [205, 410], [190, 385], [175, 410], [114, 405]];
+      poli(forma, "#fdfdfd", "#d4d4d4");
+      ctx.fillStyle = "#e11d48"; ctx.fillRect(118, 345, 144, 9); // elástico
+      ctx.font = "16px sans-serif"; ctx.textAlign = "center";
+      [[140, 378], [240, 378], [190, 372]].forEach(([x, y]) => ctx.fillText("❤", x, y));
+    }
+
+    function cabeza() {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(190, 112, 60, 72, 0, 0, Math.PI * 2); ctx.clip();
+      if (caraLista) {
+        // la foto se ajusta para cubrir el óvalo de la cara
+        const esc = Math.max(120 / cara.width, 144 / cara.height);
+        const w = cara.width * esc, h = cara.height * esc;
+        ctx.drawImage(cara, 190 - w / 2, 112 - h / 2, w, h);
+      } else {
+        ctx.fillStyle = PIEL; ctx.fillRect(120, 30, 140, 160);
+        ctx.fillStyle = "#3b2416"; ctx.fillRect(120, 30, 140, 42); // pelo
+        elipse(168, 108, 6, 8, "#1f2937"); elipse(212, 108, 6, 8, "#1f2937");
+        ctx.beginPath(); ctx.arc(190, 136, 20, 0.15 * Math.PI, 0.85 * Math.PI);
+        ctx.strokeStyle = "#7c2d12"; ctx.lineWidth = 4; ctx.stroke();
+        ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.font = "600 11px Inter, sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("(falta la foto)", 190, 172);
+      }
+      ctx.restore();
+      ctx.beginPath(); ctx.ellipse(190, 112, 60, 72, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 4; ctx.stroke();
+    }
+
+    // ---------- ropa ----------
+    function mangas(color, largo, ancho) {
+      linea(...HOMBRO_I, ...enBrazo(HOMBRO_I, MANO_I, largo), ancho, color);
+      linea(...HOMBRO_D, ...enBrazo(HOMBRO_D, MANO_D, largo), ancho, color);
+    }
+    const formaTorso = () => {
+      ctx.beginPath(); ctx.moveTo(128, 198); ctx.lineTo(252, 198);
+      ctx.lineTo(264, 362); ctx.quadraticCurveTo(190, 380, 116, 362); ctx.closePath();
+    };
+
+    const ROPA = {
+      polera: {
+        titulo: "Polera",
+        opciones: {
+          "Nada": null,
+          "Rayada CPTN": () => {
+            mangas("#9cc3e0", 0.38, 40);
+            rayas(formaTorso, "#9cc3e0", "#f8fafc", 16);
+            ctx.fillStyle = "#1e293b"; ctx.fillRect(170, 196, 40, 8);
+            ctx.fillStyle = "#1e293b"; ctx.font = "700 11px Inter, sans-serif"; ctx.textAlign = "center";
+            ctx.fillText("CP", 190, 268); ctx.fillText("TN", 190, 280);
+          },
+          "Camiseta 10": () => {
+            mangas("#dc2626", 0.38, 40);
+            formaTorso(); ctx.fillStyle = "#dc2626"; ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.font = "400 72px 'Bebas Neue', sans-serif"; ctx.textAlign = "center";
+            ctx.fillText("10", 190, 310);
+            ctx.fillStyle = "#fff"; ctx.fillRect(170, 196, 40, 6);
+          },
+          "Camisa y corbata": () => {
+            mangas("#f8fafc", 0.9, 38);
+            formaTorso(); ctx.fillStyle = "#f8fafc"; ctx.fill();
+            poli([[172, 200], [190, 222], [208, 200]], "#e2e8f0", "#cbd5e1");
+            poli([[184, 212], [196, 212], [204, 320], [190, 338], [176, 320]], "#b91c1c");
+          },
+          "Hawaiana": () => {
+            mangas("#f97316", 0.38, 40);
+            formaTorso(); ctx.fillStyle = "#f97316"; ctx.fill();
+            ctx.save(); formaTorso(); ctx.clip();
+            ctx.font = "22px sans-serif"; ctx.textAlign = "center";
+            [[145, 235], [225, 240], [185, 285], [140, 320], [235, 320], [190, 225]].forEach(([x, y]) => ctx.fillText("🌺", x, y));
+            ctx.restore();
+          },
+        },
+      },
+      pantalon: {
+        titulo: "Pantalón",
+        opciones: {
+          "Calzoncillos": null,
+          "Jeans": () => pantalon("#35598a", 565, "#24426b"),
+          "Short de fútbol": () => pantalon("#111827", 450, "#fff"),
+          "Terno": () => pantalon("#334155", 565, "#1e293b"),
+        },
+      },
+      zapatos: {
+        titulo: "Zapatos",
+        opciones: {
+          "Pata pelada": null,
+          "Zapatillas": () => zapato("#f8fafc", "#ef4444"),
+          "Chalas con calcetas": () => {
+            ctx.fillStyle = "#fff"; ctx.fillRect(140, 525, 40, 45); ctx.fillRect(200, 525, 40, 45);
+            elipse(150, 572, 32, 13, "#fff"); elipse(230, 572, 32, 13, "#fff");
+            ctx.fillStyle = "#7c4a1e"; ctx.fillRect(120, 580, 62, 6); ctx.fillRect(198, 580, 62, 6);
+            linea(130, 566, 172, 566, 6, "#7c4a1e"); linea(208, 566, 250, 566, 6, "#7c4a1e");
+          },
+          "Zapatos de vestir": () => zapato("#111", "#444"),
+        },
+      },
+      sombrero: {
+        titulo: "Sombrero",
+        opciones: {
+          "Nada": null,
+          "Gorro rojo": () => {
+            ctx.beginPath(); ctx.ellipse(190, 62, 64, 42, 0, Math.PI, 0); ctx.closePath();
+            ctx.fillStyle = "#dc2626"; ctx.fill();
+            ctx.beginPath(); ctx.ellipse(190, 64, 78, 12, 0, 0, Math.PI); ctx.fillStyle = "#b91c1c"; ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.font = "700 10px Georgia, serif"; ctx.textAlign = "center";
+            ctx.fillText("MAKE PRÓRROGA", 190, 40); ctx.fillText("GREAT AGAIN", 190, 53);
+          },
+          "Corona": () => {
+            poli([[138, 62], [138, 20], [160, 42], [190, 10], [220, 42], [242, 20], [242, 62]], "#facc15", "#a16207");
+            elipse(190, 40, 6, 6, "#dc2626"); elipse(160, 52, 4, 4, "#2563eb"); elipse(220, 52, 4, 4, "#16a34a");
+          },
+          "Sombrero de copa": () => {
+            ctx.fillStyle = "#111"; ctx.fillRect(148, -10, 84, 66);
+            ctx.fillStyle = "#b91c1c"; ctx.fillRect(148, 40, 84, 10);
+            elipse(190, 56, 76, 10, "#111");
+          },
+          "Gorro de lana": () => {
+            ctx.beginPath(); ctx.ellipse(190, 66, 64, 50, 0, Math.PI, 0); ctx.closePath();
+            ctx.fillStyle = "#2563eb"; ctx.fill();
+            ctx.fillStyle = "#1d4ed8"; rrect(124, 52, 132, 20, 8); ctx.fill();
+            elipse(190, 14, 14, 14, "#f8fafc");
+          },
+        },
+      },
+      lentes: {
+        titulo: "Lentes",
+        opciones: {
+          "Nada": null,
+          "De sol": () => {
+            rrect(146, 94, 40, 26, 10); ctx.fillStyle = "#111"; ctx.fill();
+            rrect(194, 94, 40, 26, 10); ctx.fill();
+            linea(186, 102, 194, 102, 4, "#111");
+            ctx.fillStyle = "rgba(255,255,255,0.35)"; ctx.fillRect(152, 98, 10, 4); ctx.fillRect(200, 98, 10, 4);
+          },
+          "Nerd": () => {
+            ctx.lineWidth = 5; ctx.strokeStyle = "#111";
+            ctx.beginPath(); ctx.arc(167, 106, 18, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(213, 106, 18, 0, Math.PI * 2); ctx.stroke();
+            linea(185, 104, 195, 104, 4, "#111");
+          },
+          "Corazones": () => {
+            ctx.font = "40px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText("❤️", 166, 120); ctx.fillText("❤️", 214, 120);
+          },
+        },
+      },
+      accesorio: {
+        titulo: "Accesorio",
+        opciones: {
+          "Nada": null,
+          "Trofeo": () => {
+            const [x, y] = MANO_D;
+            ctx.fillStyle = "#facc15";
+            ctx.beginPath(); ctx.moveTo(x - 24, y - 60); ctx.lineTo(x + 24, y - 60);
+            ctx.quadraticCurveTo(x + 22, y - 18, x, y - 14); ctx.quadraticCurveTo(x - 22, y - 18, x - 24, y - 60); ctx.fill();
+            ctx.fillRect(x - 5, y - 16, 10, 20); ctx.fillRect(x - 16, y + 2, 32, 8);
+            ctx.lineWidth = 5; ctx.strokeStyle = "#facc15";
+            ctx.beginPath(); ctx.arc(x - 26, y - 46, 9, 0.5 * Math.PI, 1.5 * Math.PI); ctx.stroke();
+            ctx.beginPath(); ctx.arc(x + 26, y - 46, 9, 1.5 * Math.PI, 0.5 * Math.PI); ctx.stroke();
+            elipse(x, y, 18, 18, PIEL);
+          },
+          "Cerveza": () => {
+            const [x, y] = MANO_I;
+            ctx.fillStyle = "rgba(250,204,21,0.9)"; ctx.fillRect(x - 14, y - 56, 28, 50);
+            ctx.fillStyle = "#fff"; rrect(x - 16, y - 66, 32, 14, 7); ctx.fill();
+            ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 3; ctx.strokeRect(x - 14, y - 56, 28, 50);
+            elipse(x, y, 18, 18, PIEL);
+          },
+          "Cadena de oro": () => {
+            ctx.lineWidth = 6; ctx.strokeStyle = "#facc15"; ctx.setLineDash([6, 3]);
+            ctx.beginPath(); ctx.moveTo(166, 200); ctx.quadraticCurveTo(190, 280, 214, 200); ctx.stroke();
+            ctx.setLineDash([]);
+            elipse(190, 248, 12, 12, "#facc15");
+            ctx.fillStyle = "#a16207"; ctx.font = "700 12px sans-serif"; ctx.textAlign = "center"; ctx.fillText("$", 190, 253);
+          },
+          "Ramo de flores": () => {
+            const [x, y] = MANO_D;
+            linea(x, y, x + 6, y - 50, 4, "#15803d");
+            ctx.font = "26px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText("🌹", x - 6, y - 50); ctx.fillText("🌷", x + 14, y - 44); ctx.fillText("🌼", x + 4, y - 66);
+            elipse(x, y, 18, 18, PIEL);
+          },
+        },
+      },
+    };
+
+    function pantalon(color, largo, franja) {
+      const forma = [[116, 340], [264, 340], [266, largo], [195, largo], [190, 420], [185, largo], [114, largo]];
+      poli(forma, color);
+      ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fillRect(116, 340, 148, 10);
+      linea(122, 360, 120, largo - 4, 4, franja); linea(258, 360, 260, largo - 4, 4, franja);
+    }
+    function zapato(color, detalle) {
+      [[150, 572], [230, 572]].forEach(([x, y]) => {
+        elipse(x, y - 2, 36, 16, color);
+        ctx.fillStyle = detalle; ctx.fillRect(x - 36, y + 6, 72, 6);
+      });
+    }
+
+    // Orden de las capas al dibujar
+    const CAPAS = ["zapatos", "pantalon", "polera", "accesorio", "sombrero", "lentes"];
+    const eleccion = {};
+    Object.keys(ROPA).forEach((k) => (eleccion[k] = Object.keys(ROPA[k].opciones)[0]));
+
+    function dibujar() {
+      ctx.clearRect(0, 0, W, H);
+      fondo();
+      ctx.save(); ctx.translate(0, BAJAR);
+      cuerpo();
+      calzoncillos();
+      const dib = (k) => { const f = ROPA[k].opciones[eleccion[k]]; if (f) { ctx.save(); f(); ctx.restore(); } };
+      dib("zapatos"); dib("pantalon"); dib("polera");
+      manos();
+      dib("accesorio");
+      cabeza();
+      dib("sombrero"); dib("lentes");
+      ctx.restore();
+      // firma
+      ctx.fillStyle = "#facc15"; ctx.font = "400 30px 'Bebas Neue', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("LA KOYONKA", W / 2, H - 12);
+    }
+
+    // ---------- controles ----------
+    const controles = document.getElementById("controles");
+    ["polera", "pantalon", "zapatos", "sombrero", "lentes", "accesorio"].forEach((k) => {
+      const div = document.createElement("div");
+      div.className = "categoria";
+      div.innerHTML = `<h3>${ROPA[k].titulo}</h3><div class="chips"></div>`;
+      const chips = div.querySelector(".chips");
+      Object.keys(ROPA[k].opciones).forEach((nombre) => {
+        const b = document.createElement("button");
+        b.className = "chip"; b.textContent = nombre; b.dataset.cat = k;
+        b.setAttribute("aria-pressed", eleccion[k] === nombre);
+        b.addEventListener("click", () => elegir(k, nombre));
+        chips.append(b);
+      });
+      controles.append(div);
+    });
+
+    function elegir(k, nombre) {
+      eleccion[k] = nombre;
+      document.querySelectorAll(`.chip[data-cat="${k}"]`).forEach((b) =>
+        b.setAttribute("aria-pressed", b.textContent === nombre));
+      dibujar();
+    }
+
+    document.getElementById("azar").addEventListener("click", () => {
+      Object.keys(ROPA).forEach((k) => {
+        const ops = Object.keys(ROPA[k].opciones);
+        elegir(k, ops[Math.floor(Math.random() * ops.length)]);
+      });
+    });
+    document.getElementById("desvestir").addEventListener("click", () => {
+      Object.keys(ROPA).forEach((k) => elegir(k, Object.keys(ROPA[k].opciones)[0]));
+    });
+    document.getElementById("descargar").addEventListener("click", () => {
+      lienzo.toBlob((blob) => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "koyonka.png";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      }, "image/png");
+    });
+
+    dibujar();
+    document.fonts.ready.then(dibujar);
+  </script>
+</body>
+</html>

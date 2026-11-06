@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consejo del tío Nicolás · Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧔</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <script src="clave.js"></script>
+  <style>
+    .top { text-align: center; padding: 24px 16px 8px; }
+    .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
+    .top h1 { font-size: clamp(2.4rem, 10vw, 5rem); cursor: default; margin: 8px 0 4px; }
+    .fecha { color: var(--acento); font-family: "Bebas Neue", sans-serif; font-size: 1.4rem; letter-spacing: 1px; margin: 0; }
+    .escenario { max-width: 520px; margin: 24px auto 0; padding: 0 16px; display: flex; flex-direction: column; align-items: center; }
+    .globo {
+      position: relative; background: #fff; color: #111; border-radius: 20px;
+      padding: 22px 24px; font-size: clamp(1.15rem, 4.5vw, 1.45rem); font-weight: 600; line-height: 1.4;
+      text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.4); min-height: 3em; width: 100%;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .globo::after {
+      content: ""; position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+      border: 12px solid transparent; border-top: 14px solid #fff; border-bottom: 0;
+      border-left-width: 14px; border-right-width: 14px;
+    }
+    .globo.cambio { transform: scale(0.95); opacity: 0; }
+    .tio { height: 220px; margin-top: 22px; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.5)); cursor: pointer; }
+    .tio.habla { animation: hablar 0.25s ease-in-out 6 alternate; }
+    @keyframes hablar { to { transform: rotate(-4deg) translateY(-6px); } }
+    .acciones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 20px 16px 8px; }
+    .acciones button {
+      font: 400 1.3rem "Bebas Neue", sans-serif; letter-spacing: 1px; border: 0; border-radius: 999px;
+      padding: 10px 20px; cursor: pointer; color: #111; background: var(--acento); box-shadow: 0 4px 0 #a16207;
+    }
+    .acciones button.sec { background: rgba(255,255,255,0.12); color: var(--texto); box-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
+    .acciones button:active { transform: translateY(3px); box-shadow: none; }
+    .aviso { text-align: center; color: var(--suave); min-height: 1.4em; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="volver" href="./">← Volver a la Prórroga</a>
+    <h1>CONSEJO DEL DÍA DEL TÍO NICOLÁS</h1>
+    <p class="fecha" id="fecha"></p>
+  </div>
+
+  <div class="escenario">
+    <div class="globo" id="globo" aria-live="polite"></div>
+    <img class="tio" id="tio" src="img/cara.png" alt="El tío Nicolás" title="Escuchar al tío">
+  </div>
+
+  <div class="acciones">
+    <button id="escuchar">🔊 Escuchar al tío</button>
+    <button id="otro" class="sec">🎲 Otro consejo</button>
+    <button id="copiar" class="sec">📋 Copiar</button>
+  </div>
+  <p class="aviso" id="aviso"></p>
+
+  <script src="botonera.js"></script>
+  <script src="consejos.js"></script>
+  <script>
+    const globo = document.getElementById("globo");
+    const tio = document.getElementById("tio");
+    const aviso = document.getElementById("aviso");
+
+    // El consejo del día depende de la fecha: todos ven el mismo ese día
+    const hoy = new Date();
+    const diaNumero = Math.floor(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()).getTime() / 86400000);
+    let indice = diaNumero % CONSEJOS.length;
+    document.getElementById("fecha").textContent =
+      hoy.toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" });
+
+    function mostrar(i, animar) {
+      indice = i;
+      if (!animar) { globo.textContent = CONSEJOS[i]; return; }
+      globo.classList.add("cambio");
+      setTimeout(() => { globo.textContent = CONSEJOS[i]; globo.classList.remove("cambio"); }, 200);
+    }
+
+    let audio = null;
+    function hablar() {
+      if (audio) audio.pause();
+      const b = BOTONERA[Math.floor(Math.random() * BOTONERA.length)];
+      audio = new Audio(b.archivo);
+      audio.play().catch(() => {});
+      tio.classList.remove("habla"); void tio.offsetWidth; tio.classList.add("habla");
+    }
+
+    document.getElementById("otro").addEventListener("click", () => {
+      let n;
+      do { n = Math.floor(Math.random() * CONSEJOS.length); } while (CONSEJOS.length > 1 && n === indice);
+      mostrar(n, true);
+      aviso.textContent = "Este no es el del día, pero igual sirve.";
+    });
+    document.getElementById("escuchar").addEventListener("click", hablar);
+    tio.addEventListener("click", hablar);
+    document.getElementById("copiar").addEventListener("click", async () => {
+      const txt = `🧔 El tío Nicolás dice: "${CONSEJOS[indice]}"`;
+      try { await navigator.clipboard.writeText(txt); aviso.textContent = "Copiado. Pégalo en el grupo."; }
+      catch (e) { aviso.textContent = txt; }
+    });
+
+    mostrar(indice, false);
+  </script>
+</body>
+</html>

@@ -82,8 +82,7 @@
   <script>
     // ===============================================
     //  IMPOSTORES
-    //  1) Fotos de otras personas: súbelas a img/ y agrégalas aquí.
-    //  2) Versiones "trucadas" del propio José (se generan solas).
+    //  Sube las fotos a img/ y agrégalas aquí.
     // ===============================================
     const FOTOS_IMPOSTORES = [
       { archivo: "img/impostor1.png", pista: "José en 30 años más, quizás. Hoy no." },
@@ -91,21 +90,11 @@
       { archivo: "img/impostor3.png", pista: "José rockstar. Las chapas lo delataron." },
     ];
 
-    const TRUCOS = [
-      { estilo: "filter: hue-rotate(120deg)", pista: "Gorro verde. José jamás." },
-      { estilo: "filter: hue-rotate(220deg)", pista: "Gorro azul. Sospechoso." },
-      { estilo: "transform: scaleX(-1)", pista: "Estaba al revés. Impostor espejado." },
-      { estilo: "transform: scaleX(1.35)", pista: "Demasiado ancho para ser José." },
-      { estilo: "transform: scaleY(1.2) scaleX(0.8)", pista: "Ese José está estirado." },
-      { estilo: "filter: grayscale(1)", pista: "José en blanco y negro no existe." },
-      { estilo: "transform: rotate(9deg)", pista: "Torcido. Impostor." },
-      { estilo: "filter: saturate(3) contrast(1.2)", pista: "Demasiado saturado." },
-      { estilo: "filter: sepia(1)", pista: "José del año 1920. No." },
-      { estilo: "filter: blur(2px)", pista: "Borroso. No se deja ver, sospechoso." },
-      { estilo: "transform: scale(0.65)", pista: "Mini José. Impostor." },
-    ];
+    // Fotos del José real (puedes agregar más)
+    const FOTOS_JOSE = ["img/jose.png"];
 
-    const RONDAS = 10;
+    // Una ronda por impostor y la misma cantidad de Josés reales
+    const RONDAS = FOTOS_IMPOSTORES.length * 2;
     const foto = document.getElementById("foto");
     const sello = document.getElementById("sello");
     const pista = document.getElementById("pista");
@@ -125,14 +114,10 @@
     }
 
     function crearMazo() {
-      // Mitad aprox. José real, el resto impostores (fotos primero, luego trucos)
-      const reales = Math.floor(RONDAS * (0.35 + Math.random() * 0.2));
-      // Las fotos de impostores siempre aparecen; el resto se completa con trucos
-      const imp = [
-        ...barajar(FOTOS_IMPOSTORES.map((f) => ({ tipo: "impostor", archivo: f.archivo, estilo: "", pista: f.pista }))),
-        ...barajar([...TRUCOS]).map((t) => ({ tipo: "impostor", archivo: "img/jose.png", estilo: t.estilo, pista: t.pista })),
-      ].slice(0, RONDAS - reales);
-      const jose = Array.from({ length: reales }, () => ({ tipo: "jose", archivo: "img/jose.png", estilo: "", pista: "El auténtico. Inconfundible." }));
+      const imp = FOTOS_IMPOSTORES.map((f) => ({ tipo: "impostor", archivo: f.archivo, pista: f.pista }));
+      const jose = Array.from({ length: RONDAS - imp.length }, (_, i) => ({
+        tipo: "jose", archivo: FOTOS_JOSE[i % FOTOS_JOSE.length], pista: "El auténtico. Inconfundible.",
+      }));
       return barajar([...jose, ...imp]);
     }
 
@@ -142,7 +127,6 @@
       foto.style.opacity = 0;
       setTimeout(() => {
         foto.src = actual.archivo;
-        foto.style.cssText = actual.estilo || "";
         foto.style.opacity = 1;
       }, 150);
       document.getElementById("ronda").textContent = ronda + 1;
@@ -170,8 +154,8 @@
       final.classList.remove("oculto");
       let txt = `Acertaste ${aciertos} de ${RONDAS}. `;
       if (aciertos === RONDAS) txt += "Conoces a José mejor que su mamá.";
-      else if (aciertos >= 7) txt += "Buen ojo, casi nadie te engaña.";
-      else if (aciertos >= 4) txt += "Te pasaron unos cuantos impostores.";
+      else if (aciertos >= RONDAS * 0.7) txt += "Buen ojo, casi nadie te engaña.";
+      else if (aciertos >= RONDAS * 0.4) txt += "Te pasaron unos cuantos impostores.";
       else txt += "Tú no reconocerías a José ni en la oficina.";
       document.getElementById("resultado").textContent = txt;
       pista.textContent = "";
