@@ -73,6 +73,7 @@
         resolver(true); // true = el usuario hizo clic, se puede reproducir audio
       } else {
         error.textContent = "Clave incorrecta. ¿Seguro que eres del equipo?";
+        if (window.nooo) nooo(2.5);
         c.classList.remove("sacudir");
         void c.offsetWidth;
         c.classList.add("sacudir");

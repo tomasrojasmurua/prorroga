@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
   <script src="clave.js"></script>
+  <script src="nooo.js"></script>
   <style>
     .juego-top { text-align: center; padding: 24px 16px 8px; }
     .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
@@ -141,6 +142,7 @@
       jugando = false;
       clearInterval(reloj); clearTimeout(temporizador);
       hoyos.forEach((h) => h.classList.remove("arriba"));
+      if (puntos <= record) nooo(); // sin récord: Nicolás se lamenta
       let txt = `Le pegaste ${puntos} ${puntos === 1 ? "vez" : "veces"}.`;
       if (puntos > record) {
         record = puntos; recordEl.textContent = record;
