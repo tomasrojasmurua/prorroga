@@ -7,6 +7,23 @@
 //  Ojo: es una protección liviana. Alguien con conocimientos técnicos
 //  puede saltársela, porque GitHub Pages no tiene contraseñas reales.
 // ===============================================
+// Versión del sitio: se muestra en la esquina inferior derecha de todas las páginas
+const VERSION_SITIO = "v1.16 · 6 nov 2026";
+
+(function () {
+  function mostrarVersion() {
+    if (document.getElementById("version")) return;
+    const v = document.createElement("div");
+    v.id = "version";
+    v.textContent = VERSION_SITIO;
+    v.style.cssText = "position:fixed;right:8px;bottom:8px;z-index:200;font:600 11px Inter,system-ui,sans-serif;" +
+      "color:rgba(241,245,242,0.75);background:rgba(0,0,0,0.45);padding:3px 8px;border-radius:999px;pointer-events:none;";
+    document.body.append(v);
+  }
+  if (document.body) mostrarVersion();
+  else document.addEventListener("DOMContentLoaded", mostrarVersion);
+})();
+
 (function () {
   const HASH_CLAVE = "d9df09cc98ec4c836115c388149cdafaa75eb0e04b9ba401e5c5845fcdfc2e4d";
   const LLAVE = "prorroga-acceso";
@@ -25,7 +42,7 @@
   // Oculta la página mientras no se ingrese la clave
   const estilo = document.createElement("style");
   estilo.textContent = `
-    body > *:not(#candado) { display: none !important; }
+    body > *:not(#candado):not(#version) { display: none !important; }
     #candado { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 16px; padding: 16px; text-align: center;
       background: #0d1b12; color: #f1f5f2; font-family: "Inter", system-ui, sans-serif; }
@@ -73,7 +90,7 @@
         resolver(true); // true = el usuario hizo clic, se puede reproducir audio
       } else {
         error.textContent = "Clave incorrecta. ¿Seguro que eres del equipo?";
-        if (window.nooo) nooo(2.5);
+        if (window.nooo) nooo(3);
         c.classList.remove("sacudir");
         void c.offsetWidth;
         c.classList.add("sacudir");
