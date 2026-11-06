@@ -1,4 +1,4 @@
-// Frase que suena al abrir la página: "audio1" o "audio2"
+// Audio que suena al abrir la página
 const AUDIO_AL_ABRIR = "audio2";
 
 function reproducir(id) {
