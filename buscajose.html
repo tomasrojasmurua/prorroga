@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>¿Dónde está José? · Prórroga</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css?v=29">
+  <script src="clave.js?v=29"></script>
+  <script src="nooo.js?v=29"></script>
+  <style>
+    .top { text-align: center; padding: 24px 16px 8px; }
+    .volver { color: var(--suave); text-decoration: none; font-size: 0.95rem; }
+    .top h1 { font-size: clamp(2.6rem, 11vw, 5rem); cursor: default; margin: 8px 0 4px; }
+    .info {
+      display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+      font-family: "Bebas Neue", sans-serif; font-size: 1.35rem; letter-spacing: 1px;
+    }
+    .info span { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 8px; }
+    .info b { color: var(--acento); font-weight: 400; }
+    .buscado {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      margin: 12px auto 0; color: var(--suave); font-size: 0.95rem;
+    }
+    .buscado img { height: 64px; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5)); }
+    .buscado strong { color: var(--texto); }
+    .marco { max-width: 1000px; margin: 14px auto; padding: 0 8px; }
+    .multitud {
+      position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden;
+      border-radius: 14px; border: 3px solid rgba(255,255,255,0.15);
+      background:
+        radial-gradient(circle at 20% 30%, rgba(250,204,21,0.25), transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(59,130,246,0.25), transparent 35%),
+        repeating-linear-gradient(90deg, #1d6b3a 0 8%, #22783f 8% 16%);
+      touch-action: manipulation; user-select: none;
+    }
+    .persona {
+      position: absolute; transform-origin: 50% 80%;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45));
+      cursor: pointer; -webkit-user-drag: none;
+    }
+    .adorno { position: absolute; pointer-events: none; }
+    .persona.mal { animation: sacudir 0.35s; }
+    @keyframes sacudir { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+    .encontrado {
+      position: absolute; border: 4px solid var(--acento); border-radius: 50%;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); pointer-events: none;
+      animation: aparecer 0.5s ease-out;
+    }
+    @keyframes aparecer { from { transform: scale(3); opacity: 0; } }
+    .pista-zona {
+      position: absolute; border: 3px dashed var(--acento); border-radius: 50%;
+      pointer-events: none; animation: latido 1s ease-in-out infinite;
+    }
+    .controles { text-align: center; padding: 4px 16px 24px; }
+    .mensaje { color: var(--suave); min-height: 1.5em; margin: 0 0 12px; }
+    .controles .fila { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .controles button {
+      font: 400 1.3rem "Bebas Neue", sans-serif; letter-spacing: 1px; border: 0; border-radius: 999px;
+      padding: 10px 22px; cursor: pointer; color: #111; background: var(--acento); box-shadow: 0 4px 0 #a16207;
+    }
+    .controles button.sec { background: rgba(255,255,255,0.12); color: var(--texto); box-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
+    .controles button:disabled { opacity: 0.4; cursor: default; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="volver" href="./">← Volver a la Prórroga</a>
+    <h1>¿DÓNDE ESTÁ JOSÉ?</h1>
+    <div class="info">
+      <span>Nivel <b id="nivel">1</b>/<b id="niveles">5</b></span>
+      <span>Tiempo <b id="tiempo">0</b>s</span>
+      <span>Errores <b id="errores">0</b></span>
+    </div>
+    <div class="buscado">
+      <img src="img/jose.png" alt="">
+      <span>Se busca: <strong>José Marambio</strong>.<br>Hay uno solo, entre puros impostores.</span>
+    </div>
+  </div>
+
+  <div class="marco"><div class="multitud" id="multitud"></div></div>
+
+  <div class="controles">
+    <p class="mensaje" id="mensaje">Toca a José cuando lo encuentres.</p>
+    <div class="fila">
+      <button id="pista" class="sec">💡 Pista</button>
+      <button id="siguiente" hidden>Siguiente nivel ▶</button>
+    </div>
+  </div>
+
+  <script>
+    // ===============================================
+    //  Personajes: el José real y los impostores (mismas fotos del otro juego)
+    // ===============================================
+    const JOSE = "img/jose.png";
+    const IMPOSTORES = ["img/impostor1.png", "img/impostor2.png", "img/impostor3.png"];
+    // Cantidad de impostores por nivel
+    const NIVELES = [25, 45, 70, 100, 140];
+    const ADORNOS = ["🎉", "⚽", "🎈", "🍺", "📣", "🧢", "🎊", "⭐"];
+
+    const multitud = document.getElementById("multitud");
+    const mensaje = document.getElementById("mensaje");
+    const btnPista = document.getElementById("pista");
+    const btnSig = document.getElementById("siguiente");
+    document.getElementById("niveles").textContent = NIVELES.length;
+
+    let nivel = 0, errores = 0, segundos = 0, reloj = null, jugando = false, joseEl = null, totalTiempo = 0;
+
+    const azar = (a, b) => a + Math.random() * (b - a);
+
+    function ubicar(el, x, y, alto, giro, espejo) {
+      el.style.left = x + "%";
+      el.style.top = y + "%";
+      el.style.height = alto + "%";
+      el.style.transform = `translate(-50%, -50%) rotate(${giro}deg) scaleX(${espejo ? -1 : 1})`;
+    }
+
+    function armarNivel() {
+      multitud.innerHTML = "";
+      const n = NIVELES[nivel];
+      // Más chicos a medida que hay más gente
+      const altoBase = Math.max(9, 22 - nivel * 3);
+
+      // Adornos de fondo para despistar
+      for (let i = 0; i < 18 + nivel * 6; i++) {
+        const a = document.createElement("span");
+        a.className = "adorno";
+        a.textContent = ADORNOS[Math.floor(Math.random() * ADORNOS.length)];
+        a.style.left = azar(0, 97) + "%"; a.style.top = azar(0, 95) + "%";
+        a.style.fontSize = azar(0.8, 1.6) + "rem"; a.style.opacity = 0.7;
+        a.style.transform = `rotate(${azar(-30, 30)}deg)`;
+        multitud.append(a);
+      }
+
+      // Posiciones en una grilla con ruido, para que no se amontonen todos en un lugar
+      const total = n + 1;
+      const cols = Math.ceil(Math.sqrt(total * 1.5));
+      const filas = Math.ceil(total / cols);
+      const celdas = [];
+      for (let f = 0; f < filas; f++) for (let c = 0; c < cols; c++) celdas.push([c, f]);
+      celdas.sort(() => Math.random() - 0.5);
+      const posJose = Math.floor(Math.random() * total);
+
+      celdas.slice(0, total).forEach(([c, f], i) => {
+        const img = document.createElement("img");
+        img.className = "persona";
+        img.draggable = false;
+        img.alt = "";
+        const esJose = i === posJose;
+        img.src = esJose ? JOSE : IMPOSTORES[Math.floor(Math.random() * IMPOSTORES.length)];
+        const x = ((c + 0.5) / cols) * 100 + azar(-30, 30) / cols;
+        const y = ((f + 0.5) / filas) * 100 + azar(-30, 30) / filas;
+        ubicar(img, Math.min(96, Math.max(4, x)), Math.min(92, Math.max(8, y)),
+          altoBase * azar(0.8, 1.2), azar(-18, 18), Math.random() < 0.5);
+        img.style.zIndex = Math.floor(azar(1, 50));
+        if (esJose) { joseEl = img; img.dataset.jose = "1"; }
+        multitud.append(img);
+      });
+
+      document.getElementById("nivel").textContent = nivel + 1;
+      btnPista.disabled = false;
+      btnSig.hidden = true;
+      mensaje.textContent = `Nivel ${nivel + 1}: ${n} impostores y un solo José.`;
+      segundos = 0;
+      document.getElementById("tiempo").textContent = 0;
+      clearInterval(reloj);
+      reloj = setInterval(() => { document.getElementById("tiempo").textContent = ++segundos; }, 1000);
+      jugando = true;
+    }
+
+    // Se revisa si el toque cae sobre José aunque otro sticker lo tape con su borde transparente
+    multitud.addEventListener("pointerdown", (ev) => {
+      if (!jugando) return;
+      ev.preventDefault();
+      const r = joseEl.getBoundingClientRect();
+      const mx = r.width * 0.18, my = r.height * 0.1;
+      if (ev.clientX > r.left + mx && ev.clientX < r.right - mx && ev.clientY > r.top + my && ev.clientY < r.bottom - my) return ganar();
+      if (ev.target.classList.contains("persona")) tocar(ev.target);
+    });
+
+    function tocar(img) {
+      if (!jugando) return;
+      errores++;
+      document.getElementById("errores").textContent = errores;
+      img.classList.remove("mal"); void img.offsetWidth; img.classList.add("mal");
+      mensaje.textContent = "¡Ese es un impostor!";
+      nooo(2);
+    }
+
+    function marcar(clase, radioExtra) {
+      const r = joseEl.getBoundingClientRect(), m = multitud.getBoundingClientRect();
+      const d = Math.max(r.width, r.height) + radioExtra;
+      const anillo = document.createElement("div");
+      anillo.className = clase;
+      const cx = r.left - m.left + r.width / 2, cy = r.top - m.top + r.height / 2;
+      // En la pista el círculo no queda centrado exacto en José
+      const ox = clase === "pista-zona" ? azar(-0.3, 0.3) * d : 0;
+      const oy = clase === "pista-zona" ? azar(-0.3, 0.3) * d : 0;
+      Object.assign(anillo.style, {
+        width: d + "px", height: d + "px", left: cx - d / 2 + ox + "px", top: cy - d / 2 + oy + "px", zIndex: 100,
+      });
+      multitud.append(anillo);
+      return anillo;
+    }
+
+    function ganar() {
+      jugando = false;
+      clearInterval(reloj);
+      totalTiempo += segundos;
+      joseEl.style.zIndex = 99;
+      marcar("encontrado", 16);
+      const ultimo = nivel === NIVELES.length - 1;
+      if (ultimo) {
+        mensaje.textContent = `¡Lo encontraste en todos los niveles! Tiempo total: ${totalTiempo}s, con ${errores} ${errores === 1 ? "error" : "errores"}.`;
+        btnSig.textContent = "↻ Jugar otra vez";
+      } else {
+        mensaje.textContent = `¡Ahí estaba José! Lo encontraste en ${segundos}s.`;
+        btnSig.textContent = "Siguiente nivel ▶";
+      }
+      btnPista.disabled = true;
+      btnSig.hidden = false;
+    }
+
+    btnPista.addEventListener("click", () => {
+      if (!jugando) return;
+      segundos += 10; // la pista cuesta 10 segundos
+      btnPista.disabled = true;
+      const anillo = marcar("pista-zona", 140);
+      mensaje.textContent = "Está por esta zona (+10 segundos).";
+      setTimeout(() => anillo.remove(), 3000);
+    });
+
+    btnSig.addEventListener("click", () => {
+      if (nivel === NIVELES.length - 1) { nivel = 0; errores = 0; totalTiempo = 0; document.getElementById("errores").textContent = 0; }
+      else nivel++;
+      armarNivel();
+    });
+
+    armarNivel();
+  </script>
+</body>
+</html>
