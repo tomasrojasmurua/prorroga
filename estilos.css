@@ -73,20 +73,51 @@ h1:active { transform: scale(0.97); }
   50%  { transform: scaleX(-1); }
 }
 
-.bajada { color: var(--suave); margin: 0 0 20px; }
+.bajada { color: var(--suave); margin: 0 0 8px; }
 
-.botones-audio { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-
-.btn-audio {
-  font: 600 0.95rem "Inter", sans-serif;
-  color: var(--texto);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 8px 16px;
-  border-radius: 999px;
-  cursor: pointer;
+.seccion {
+  font-family: "Bebas Neue", sans-serif;
+  font-weight: 400;
+  font-size: 2rem;
+  letter-spacing: 2px;
+  margin: 32px 0 16px;
+  text-align: center;
 }
-.btn-audio:hover { background: rgba(255, 255, 255, 0.16); }
+
+/* Botonera */
+.botonera {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 20px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px 16px;
+}
+.boton {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: none; border: 0; color: var(--texto); cursor: pointer;
+  font: 600 0.9rem "Inter", sans-serif;
+}
+.pulsador {
+  display: grid; place-items: center;
+  width: 84px; height: 84px; border-radius: 50%;
+  font-size: 2rem;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, #c81e1e 60%, #8b1010);
+  box-shadow: 0 7px 0 #5c0a0a, 0 10px 16px rgba(0, 0, 0, 0.5), inset 0 -4px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.boton:hover .pulsador { filter: brightness(1.1); }
+.boton:active .pulsador, .boton.activo .pulsador {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 #5c0a0a, 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 -2px 6px rgba(0, 0, 0, 0.25);
+}
+.boton.activo .pulsador {
+  background: radial-gradient(circle at 35% 30%, #fde68a, var(--acento) 60%, #a16207);
+  box-shadow: 0 2px 0 #713f12, 0 0 24px rgba(250, 204, 21, 0.6);
+}
+.boton:focus-visible { outline: 2px solid var(--acento); outline-offset: 4px; border-radius: 12px; }
+.etiqueta { text-align: center; line-height: 1.3; }
 
 main { max-width: 960px; margin: 0 auto; padding: 16px; }
 

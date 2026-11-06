@@ -27,13 +27,15 @@
       <img class="cara cara-der" src="img/cara.png" alt="">
     </div>
     <p class="bajada">Los chistes internos del equipo</p>
-    <div class="botones-audio">
-      <button class="btn-audio" data-audio="audio1">🔊 Frase 1</button>
-      <button class="btn-audio" data-audio="audio2">🔊 Frase 2</button>
-    </div>
   </header>
 
   <main>
+    <section class="botonera-sec" aria-labelledby="t-botonera">
+      <h2 id="t-botonera" class="seccion">La botonera de Nicolás Bustamante</h2>
+      <div id="botonera" class="botonera"></div>
+    </section>
+
+    <h2 class="seccion">Chistes internos</h2>
     <section id="chistes" class="chistes" aria-live="polite"></section>
   </main>
 
@@ -43,6 +45,7 @@
   <audio id="audio2" src="audio/parte2.mp3" preload="auto"></audio>
 
   <script src="chistes.js"></script>
+  <script src="botonera.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

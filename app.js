@@ -52,9 +52,35 @@ function relojPrórroga() {
   setInterval(() => { el.textContent = ++min; }, 60000);
 }
 
-document.querySelectorAll(".btn-audio").forEach((b) =>
-  b.addEventListener("click", () => reproducir(b.dataset.audio).catch(() => {}))
-);
+// Botonera: un solo audio a la vez; tocar el mismo botón lo detiene
+let sonando = null;
+function pintarBotonera() {
+  const cont = document.getElementById("botonera");
+  BOTONERA.forEach((b) => {
+    const audio = new Audio(b.archivo);
+    audio.preload = "none";
+    const btn = document.createElement("button");
+    btn.className = "boton";
+    btn.innerHTML = `<span class="pulsador">${b.emoji}</span><span class="etiqueta"></span>`;
+    btn.querySelector(".etiqueta").textContent = b.nombre;
+    audio.addEventListener("ended", () => btn.classList.remove("activo"));
+    btn.addEventListener("click", () => {
+      const mismo = sonando && sonando.audio === audio;
+      if (sonando) {
+        sonando.audio.pause();
+        sonando.btn.classList.remove("activo");
+        sonando = null;
+      }
+      if (mismo) return;
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+      btn.classList.add("activo");
+      sonando = { audio, btn };
+    });
+    cont.append(btn);
+  });
+}
+pintarBotonera();
 document.getElementById("titulo").addEventListener("click", () =>
   reproducir(AUDIO_AL_ABRIR).catch(() => {})
 );

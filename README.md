@@ -3,6 +3,7 @@
 Página con los chistes internos del equipo. Al abrirla suena "prórroga".
 
 - **Agregar chistes:** edita `chistes.js`.
+- **Botonera de Nicolás:** sube el audio a `audio/` y agrégalo en `botonera.js`.
 - **Cambiar la frase que suena al abrir:** cambia `AUDIO_AL_ABRIR` en `app.js` (`"audio1"` o `"audio2"`).
 - **Audios:** `audio/parte1.mp3` y `audio/parte2.mp3` (cortados de `audio/original.ogg`).
 
