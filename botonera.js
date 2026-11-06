@@ -19,5 +19,6 @@ const BOTONERA = [
   { nombre: "Las es tres has", archivo: "audio/lasestreshas.mp3", emoji: "3️⃣" },
   { nombre: "¡Noooo!", archivo: "audio/noooo.mp3", emoji: "😱" },
   { nombre: "Las Malvinas son brasileñas", archivo: "audio/lasmalvinassonbrasilenas.mp3", emoji: "🇧🇷" },
+  { nombre: "En vola me salía cacha", archivo: "audio/envolamesaliacacha.mp3", emoji: "🌀" },
   { nombre: "Cucurella", archivo: "audio/cucurelia.mp3", emoji: "⚽" },
 ];
