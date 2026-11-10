@@ -6,7 +6,6 @@
 const BOTONERA = [
   { nombre: "Prórroga", archivo: "audio/parte2.mp3", emoji: "⏱️" },
   { nombre: "Audio 3", archivo: "audio/audio3.mp3", emoji: "🎙️" },
-  { nombre: "Audio 4", archivo: "audio/audio4.mp3", emoji: "🎙️" },
   { nombre: "Argentina me gusta", archivo: "audio/argentinamegusta.mp3", emoji: "🇦🇷" },
   { nombre: "Nickelodeon", archivo: "audio/nickelodeon.mp3", emoji: "📺" },
   { nombre: "8 de la mañana", archivo: "audio/8delamanana.mp3", emoji: "⏰" },
